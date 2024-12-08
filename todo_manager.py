@@ -203,7 +203,7 @@ class CLI:
                 print(f"{task.task_id}: {task.name} (Due: {task.due_date})")
             print("-------------------------------")
 
-    def run(self):
+    def run_cli(self):
         self.display_reminders()
         while True:
             print("\n--- Todo List Manager ---")
@@ -299,7 +299,3 @@ class CLI:
             print("Last action undone.")
         else:
             print("No action to undo.")
-
-
-if __name__ == "__main__":
-    CLI().run()
