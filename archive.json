@@ -1,14 +1,5 @@
 [
     {
-        "id": 1,
-        "name": "Task 1",
-        "due_date": "2024-12-31",
-        "priority": "Medium",
-        "category": "General",
-        "completed": true,
-        "recurrence": null
-    },
-    {
         "id": 2,
         "name": "Task 2",
         "due_date": "2024-12-31",
