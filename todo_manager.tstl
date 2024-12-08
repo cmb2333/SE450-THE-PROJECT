@@ -1,17 +1,26 @@
 @import todo_manager
 @import random
 
-# Define helper functions for test actions
+# Helper functions for generating random inputs
 <@
 def random_string():
     """Generate a random string."""
     length = random.randint(5, 20)
     return ''.join(random.choices("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", k=length))
 
+def random_date():
+    """Generate a random valid date."""
+    year = random.randint(2023, 2030)
+    month = random.randint(1, 12)
+    day = random.randint(1, 28)
+    return f"{year:04d}-{month:02d}-{day:02d}"
 @>
 
-# Pools for managing states during testing
+# Pools for managing the state
 pool: <todo_manager.TodoManager> 1 SINGLE
+pool: <str> 20
+pool: <int> 10
+pool: <list> 10
 
 # Properties to check invariants
 property: len(<todo_manager.TodoManager>.list_tasks()) >= 0
@@ -20,24 +29,22 @@ property: len(<todo_manager.TodoManager>.list_tasks()) >= 0
 log: 1 <todo_manager.TodoManager>.list_tasks()
 log: POST 1 <todo_manager.TodoManager>.list_tasks()
 
-# Actions
 # Initialize a TodoManager
 <todo_manager.TodoManager> := todo_manager.TodoManager()
 
-# List tasks
-action list_tasks:
-    tasks = ~<todo_manager.TodoManager>.list_tasks()
+# Listing tasks
+~<todo_manager.TodoManager>.list_tasks()
 
-# Mark all tasks as completed
-action mark_all_completed:
-    ~<todo_manager.TodoManager>.mark_all_completed() => \
-        all(task.completed for task in <todo_manager.TodoManager>.list_tasks())
+# Marking all tasks as completed
+~<todo_manager.TodoManager>.mark_all_completed() => \
+    all(task.completed for task in <todo_manager.TodoManager>.list_tasks())
+
+# Searching tasks
+~<todo_manager.TodoManager>.search_tasks(random_string())
 
 # Undo last action
-action undo_last_action:
-    ~<todo_manager.TodoManager>.undo_last_action()
+~<todo_manager.TodoManager>.undo_last_action()
 
 # Archive completed tasks
-action archive_completed_tasks:
-    ~<todo_manager.TodoManager>.archive_completed_tasks() => \
-        len(<todo_manager.TodoManager>.list_tasks()) <= pre<(len(<todo_manager.TodoManager>.list_tasks()))>
+~<todo_manager.TodoManager>.archive_completed_tasks() => \
+    len(<todo_manager.TodoManager>.list_tasks()) <= pre<(len(<todo_manager.TodoManager>.list_tasks()))>
