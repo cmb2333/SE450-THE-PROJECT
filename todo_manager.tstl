@@ -1,4 +1,4 @@
-@import todo_manager
+@import TodoManager
 @import random
 
 <@
@@ -22,19 +22,22 @@ pool: string 10
 # Properties
 property: len(manager.list_tasks()) >= 0
 
+# Logging
+log: 1 manager.list_tasks()
+log: POST 3 manager.list_tasks()
+
 # Initialize TodoManager
-manager := todo_manager.TodoManager()
+manager := TodoManager.TodoManager()
 
-# Add a fallback task to avoid deadlocks
-manager := todo_manager.TodoManager()
-~manager.add_task("Fallback Task", "2024-12-31", "Medium", "Fallback Category", None)
+# Add an initial task to avoid deadlock
+~manager.add_task("Initial Task", "2024-12-31", "Medium", "Initial Category", None)
 
-# List tasks
+# Actions
 ~manager.list_tasks()
 
-# Mark all tasks as completed
 len(manager.list_tasks()) > 0 -> ~manager.mark_all_completed()
 
-# Search for tasks
-~manager.search_tasks(random_string())
+len(manager.list_tasks()) > 0 -> ~manager.archive_completed_tasks()
+
+len(manager.list_tasks()) > 0 -> ~manager.search_tasks(random_string())
 
