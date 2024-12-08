@@ -1,48 +1,77 @@
-# Import the necessary modules
-import todo_manager
-import random
+@import todo_manager
+@import random
 
-# Initialize the SUT (System Under Test)
-manager = todo_manager.TodoManager()
+# Define helper functions for test actions
+<@
+def random_string():
+    """Generate a random string."""
+    length = random.randint(5, 20)
+    return ''.join(random.choices("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", k=length))
 
-# Adding a task
+def random_date():
+    """Generate a random valid date."""
+    year = random.randint(2023, 2030)
+    month = random.randint(1, 12)
+    day = random.randint(1, 28)
+    return f"{year:04d}-{month:02d}-{day:02d}"
+
+@>
+
+# Pools for managing states during testing
+pool: <todo_manager.TodoManager> 1 SINGLE
+pool: <int> 10
+pool: <str> 20
+pool: <list> 10
+
+# Properties to check invariants
+property: len(<todo_manager.TodoManager>.list_tasks()) >= 0
+property: all(isinstance(task, todo_manager.Task) for task in <todo_manager.TodoManager>.list_tasks())
+
+# Logging actions
+log: 1 <todo_manager.TodoManager>.list_tasks()
+log: POST 1 <todo_manager.TodoManager>.list_tasks()
+
+# Actions
+# Initialize a TodoManager
+<todo_manager.TodoManager> := todo_manager.TodoManager()
+
+# Add a task to the TodoManager
 action add_task:
     name = random_string()
     due_date = random_date()
     priority = random.choice(["High", "Medium", "Low"])
     category = random_string()
     recurrence = random.choice([None, "daily", "weekly", "monthly"])
-    manager.add_task(name, due_date, priority, category, recurrence)
+    ~<todo_manager.TodoManager>.add_task(name, due_date, priority, category, recurrence) => \
+        len(<todo_manager.TodoManager>.list_tasks()) > pre<(len(<todo_manager.TodoManager>.list_tasks()))>
 
-# Listing tasks
+# List tasks
 action list_tasks:
-    tasks = manager.list_tasks()
+    tasks = ~<todo_manager.TodoManager>.list_tasks()
 
-# Marking all tasks as completed
+# Mark all tasks as completed
 action mark_all_completed:
-    manager.mark_all_completed()
+    ~<todo_manager.TodoManager>.mark_all_completed() => \
+        all(task.completed for task in <todo_manager.TodoManager>.list_tasks())
 
-# Searching tasks
+# Search tasks by keyword
 action search_tasks:
     keyword = random_string()
-    results = manager.search_tasks(keyword)
+    results = ~<todo_manager.TodoManager>.search_tasks(keyword)
 
 # Undo last action
 action undo_last_action:
-    manager.undo_last_action()
+    ~<todo_manager.TodoManager>.undo_last_action()
 
-# Archiving tasks
+# Archive completed tasks
 action archive_completed_tasks:
-    manager.archive_completed_tasks()
+    ~<todo_manager.TodoManager>.archive_completed_tasks() => \
+        len(<todo_manager.TodoManager>.list_tasks()) <= pre<(len(<todo_manager.TodoManager>.list_tasks()))>
 
-# Define helper functions
+# Export tasks to CSV
+action export_tasks:
+    ~<todo_manager.TodoManager>.export_tasks_to_csv()
 
-def random_string():
-    length = random.randint(5, 20)
-    return ''.join(random.choices("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", k=length))
+# Define preconditions and invariants
+len(<todo_manager.TodoManager>.list_tasks()) > 0 -> <todo_manager.TodoManager>.mark_all_completed()
 
-def random_date():
-    year = random.randint(2023, 2030)
-    month = random.randint(1, 12)
-    day = random.randint(1, 28)
-    return f"{year:04d}-{month:02d}-{day:02d}"
