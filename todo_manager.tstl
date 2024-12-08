@@ -1,4 +1,4 @@
-@import TodoManager
+@import todo_manager
 @import random
 
 <@
@@ -27,7 +27,7 @@ log: 1 manager.list_tasks()
 log: POST 3 manager.list_tasks()
 
 # Initialize TodoManager
-manager := TodoManager.TodoManager()
+manager := todo_manager.TodoManager()
 
 # Add an initial task to avoid deadlock
 ~manager.add_task("Initial Task", "2024-12-31", "Medium", "Initial Category", None)
