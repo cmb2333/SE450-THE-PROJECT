@@ -5,8 +5,6 @@ import random
 # Initialize the SUT (System Under Test)
 manager = todo_manager.TodoManager()
 
-# Define operations for TSTL
-
 # Adding a task
 action add_task:
     name = random_string()
