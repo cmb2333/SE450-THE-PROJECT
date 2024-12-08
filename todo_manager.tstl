@@ -17,34 +17,34 @@ def random_date():
 @>
 
 # Pools for managing the state
-pool: <todo_manager.TodoManager> 1 SINGLE
-pool: <str> 20
-pool: <int> 10
-pool: <list> 10
+pool: <manager> 1 SINGLE
+pool: <string> 20
+pool: <integer> 10
+pool: <task_list> 10
 
 # Properties to check invariants
-property: len(<todo_manager.TodoManager>.list_tasks()) >= 0
+property: len(<manager>.list_tasks()) >= 0
 
 # Logging actions
-log: 1 <todo_manager.TodoManager>.list_tasks()
-log: POST 1 <todo_manager.TodoManager>.list_tasks()
+log: 1 <manager>.list_tasks()
+log: POST 1 <manager>.list_tasks()
 
 # Initialize a TodoManager
-<todo_manager.TodoManager> := todo_manager.TodoManager()
+<manager> := todo_manager.TodoManager()
 
 # Listing tasks
-~<todo_manager.TodoManager>.list_tasks()
+~<manager>.list_tasks()
 
 # Marking all tasks as completed
-~<todo_manager.TodoManager>.mark_all_completed() => \
-    all(task.completed for task in <todo_manager.TodoManager>.list_tasks())
+~<manager>.mark_all_completed() => \
+    all(task.completed for task in <manager>.list_tasks())
 
 # Searching tasks
-~<todo_manager.TodoManager>.search_tasks(random_string())
+~<manager>.search_tasks(random_string())
 
 # Undo last action
-~<todo_manager.TodoManager>.undo_last_action()
+~<manager>.undo_last_action()
 
 # Archive completed tasks
-~<todo_manager.TodoManager>.archive_completed_tasks() => \
-    len(<todo_manager.TodoManager>.list_tasks()) <= pre<(len(<todo_manager.TodoManager>.list_tasks()))>
+~<manager>.archive_completed_tasks() => \
+    len(<manager>.list_tasks()) <= pre<(len(<manager>.list_tasks()))>
