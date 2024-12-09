@@ -90,7 +90,11 @@ class TodoManager:
             if name is not None:
                 task.name = name
             if due_date is not None:
-                task.due_date = due_date
+                try:
+                    datetime.strptime(due_date, "%Y-%m-%d")  # Validate date format
+                    task.due_date = due_date
+                except ValueError:
+                    raise ValueError("Invalid due_date format, expected YYYY-MM-DD")
             if priority is not None:
                 task.priority = priority
             if category is not None:
