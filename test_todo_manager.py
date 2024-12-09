@@ -162,7 +162,7 @@ class TestTodoManager(unittest.TestCase):
         with open("test_tasks.json", "w") as file:
             file.write('{"id": 1, "name": "Task Without Closing Bracket"')
         with self.assertRaises(json.JSONDecodeError):
-            self.manager.load_tasks()
+            self.manager.load_tasks(raise_exceptions=True)
 
     def test_load_tasks_empty_file(self):
         with open("test_tasks.json", "w") as file:

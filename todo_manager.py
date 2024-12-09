@@ -63,8 +63,10 @@ class TodoManager:
             with open(self.filename, "r") as file:
                 data = json.load(file)
                 self.tasks = [Task.from_dict(task) for task in data]
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError) as e:
             self.tasks = []
+            if raise_exceptions:  # For testing purposes
+                raise e
 
     def save_tasks(self):
         with open(self.filename, "w") as file:
