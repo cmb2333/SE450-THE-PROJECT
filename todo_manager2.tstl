@@ -1,0 +1,80 @@
+@import json
+@import datetime
+@import todo_manager
+
+<@
+def valid_date_format(date_str):
+    """Check if the date string is in YYYY-MM-DD format."""
+    try:
+        datetime.datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+def check_task_list_consistency(manager):
+    """Ensure all task IDs in TodoManager are unique."""
+    ids = [task.task_id for task in manager.tasks]
+    return len(ids) == len(set(ids))
+@>
+
+# Logging
+log: POST 1 <todo_manager.TodoManager>.list_tasks()
+
+# Pools
+pool: <int> 5
+pool: <string> 5
+pool: <todo_manager.TodoManager> 1 OPAQUE
+
+# Properties
+property: check_task_list_consistency(<todo_manager.TodoManager>)
+
+# Initialize TodoManager
+<todo_manager.TodoManager> := todo_manager.TodoManager(filename="test_tasks.json")
+
+# Generate task IDs
+<int> := <[1..100]>
+
+# Generate task names
+<string> := ""
+<string> += <["Task_A", "Task_B", "Task_C", "Task_D", "Task_E", "Task_F"]>
+
+# Add a task
+~<todo_manager.TodoManager>.add_task(name=<string>, due_date="2024-12-31", priority="Medium", category="Test") => \
+    len(<todo_manager.TodoManager,1>.tasks) == pre<(len(<todo_manager.TodoManager,1>.tasks))> + 1
+
+# Update a task
+len(<todo_manager.TodoManager,1>.tasks) > 0 -> \
+~<todo_manager.TodoManager>.update_task(task_id=1, name="Updated Task") => \
+    any(task.name == "Updated Task" for task in <todo_manager.TodoManager,1>.tasks)
+
+# Delete a task
+len(<todo_manager.TodoManager,1>.tasks) > 0 -> \
+~<todo_manager.TodoManager>.delete_task(task_id=1) => \
+    len(<todo_manager.TodoManager,1>.tasks) == pre<(len(<todo_manager.TodoManager,1>.tasks))> - 1
+
+# List tasks
+len(<todo_manager.TodoManager,1>.tasks) > 0 -> \
+<todo_manager.TodoManager>.list_tasks()
+
+# Mark all tasks as completed
+len(<todo_manager.TodoManager,1>.tasks) > 0 -> \
+~<todo_manager.TodoManager>.mark_all_completed() => \
+    all(task.completed for task in <todo_manager.TodoManager,1>.tasks)
+
+# Archive completed tasks
+len(<todo_manager.TodoManager,1>.tasks) > 0 and \
+any(task.completed for task in <todo_manager.TodoManager,1>.tasks) -> \
+~<todo_manager.TodoManager>.archive_completed_tasks() => \
+    all(not task.completed for task in <todo_manager.TodoManager,1>.tasks)
+
+# Export tasks to CSV
+<todo_manager.TodoManager>.export_tasks_to_csv(filename="test_tasks.csv")
+
+# Search tasks by keyword
+len(<todo_manager.TodoManager,1>.tasks) > 0 -> \
+~<todo_manager.TodoManager>.search_tasks(keyword="Task")
+
+# Undo last action
+len(<todo_manager.TodoManager,1>.history) > 0 -> \
+~<todo_manager.TodoManager>.undo_last_action() => \
+    len(<todo_manager.TodoManager,1>.history) == pre<(len(<todo_manager.TodoManager,1>.history))> - 1
