@@ -76,8 +76,9 @@ class TestTodoManager(unittest.TestCase):
         self.assertEqual(tasks[0].category, "Work")
 
     def test_list_tasks_no_completed(self):
-        self.manager.add_task("Completed Task", "2024-01-01", completed=True)
-        self.manager.add_task("Pending Task", "2024-01-01", completed=False)
+        self.manager.add_task("Completed Task", "2024-01-01")
+        self.manager.add_task("Pending Task", "2024-01-01")
+        self.manager.update_task(1, completed=True)
         tasks = self.manager.list_tasks(include_completed=False)
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0].name, "Pending Task")
@@ -100,8 +101,9 @@ class TestTodoManager(unittest.TestCase):
 
     # Test for archiving tasks
     def test_archive_completed_tasks(self):
-        self.manager.add_task("Task 1", "2024-12-31", completed=True)
+        self.manager.add_task("Task 1", "2024-12-31")
         self.manager.add_task("Task 2", "2024-12-31")
+        self.manager.update_task(1, completed=True)
         self.manager.archive_completed_tasks()
         tasks = self.manager.list_tasks()
         self.assertEqual(len(tasks), 1)
