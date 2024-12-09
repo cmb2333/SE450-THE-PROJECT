@@ -118,7 +118,9 @@ class TestTodoManager(unittest.TestCase):
         self.assertTrue(all(task.completed for task in self.manager.tasks))
 
     def test_archive_completed_tasks(self):
-        self.manager.add_task("Completed Task", "2024-12-10", completed=True)
+        self.manager.add_task("Completed Task", "2024-12-10")
+        task = self.manager.get_task(1)
+        task.completed = True
         self.manager.add_task("Incomplete Task", "2024-12-11")
         self.manager.archive_completed_tasks()
         self.assertEqual(len(self.manager.tasks), 1)
