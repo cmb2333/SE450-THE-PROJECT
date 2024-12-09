@@ -106,8 +106,9 @@ class TestTodoManager(unittest.TestCase):
 
     # Archiving and Exporting
     def test_archive_completed_tasks(self):
-        self.manager.add_task("Task 1", "2024-12-31", completed=True)
+        self.manager.add_task("Task 1", "2024-12-31")
         self.manager.add_task("Task 2", "2024-12-31")
+        self.manager.update_task(1, completed=True)
         self.manager.archive_completed_tasks()
         tasks = self.manager.list_tasks()
         self.assertEqual(len(tasks), 1)
