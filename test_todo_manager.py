@@ -9,6 +9,9 @@ class TestTodoManager(unittest.TestCase):
 
     def setUp(self):
         """Set up a fresh TodoManager instance for each test."""
+        # Create an empty JSON file to avoid FileNotFoundError
+        with open("test_tasks.json", "w") as file:
+            file.write("[]")
         self.manager = TodoManager(filename="test_tasks.json", archive_filename="test_archive.json")
         self.manager.tasks = []
 

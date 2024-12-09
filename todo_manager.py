@@ -58,7 +58,7 @@ class TodoManager:
         self.history = []
         self.load_tasks()
 
-    def load_tasks(self):
+    def load_tasks(self, raise_exceptions=False):
         try:
             with open(self.filename, "r") as file:
                 data = json.load(file)
