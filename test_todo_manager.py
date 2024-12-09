@@ -122,7 +122,8 @@ class TestTodoManager(unittest.TestCase):
     # Export and Archive
     def test_export_tasks_to_csv(self):
         self.manager.add_task("Task 1", "2024-12-31")
-        self.manager.add_task("Task 2", "2023-12-31", "High", "Work", completed=True)
+        self.manager.add_task("Task 2", "2023-12-31", "High", "Work")
+        self.manager.update_task(2, completed=True)
         self.manager.export_tasks_to_csv(filename="test_export.csv")
         with open("test_export.csv", "r") as file:
             rows = list(csv.reader(file))
@@ -157,9 +158,9 @@ class TestTodoManager(unittest.TestCase):
     def test_load_tasks_unexpected_json_structure(self):
         with open("test_tasks.json", "w") as file:
             file.write('[{"unexpected_key": "unexpected_value"}]')
-        self.manager.load_tasks()
-        tasks = self.manager.list_tasks()
-        self.assertEqual(len(tasks), 0)
+        with self.assertRaises(ValueError) as context:
+            self.manager.load_tasks()
+        self.assertIn("Missing required key in task data", str(context.exception))
 
     def test_save_tasks_permission_error(self):
         with open("test_tasks.json", "w") as file:

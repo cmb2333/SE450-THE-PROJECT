@@ -26,6 +26,7 @@ class Task:
 
     @classmethod
     def from_dict(cls, data):
+    try:
         return cls(
             task_id=data["id"],
             name=data["name"],
@@ -35,6 +36,8 @@ class Task:
             completed=data["completed"],
             recurrence=data["recurrence"],
         )
+    except KeyError as e:
+        raise ValueError(f"Missing required key in task data: {e}")
 
     def calculate_next_due_date(self):
         if self.recurrence == "daily":
