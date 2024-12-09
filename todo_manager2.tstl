@@ -4,6 +4,7 @@
 
 <@
 def valid_date_format(date_str):
+    """Check if the date string is in YYYY-MM-DD format."""
     try:
         datetime.datetime.strptime(date_str, "%Y-%m-%d")
         return True
@@ -11,64 +12,69 @@ def valid_date_format(date_str):
         return False
 
 def check_task_list_consistency(manager):
+    """Ensure all task IDs in TodoManager are unique."""
     task_ids = [task.task_id for task in manager.tasks]
     return len(task_ids) == len(set(task_ids))
+
+def all_tasks_completed(manager):
+    """Check if all tasks are marked as completed."""
+    return all(task.completed for task in manager.tasks)
 @>
 
 # Logging
-log: POST 1 <todo_manager.TodoManager>.tasks
+log: POST 1 todo_manager_instance.tasks
 
 # Pools
-pool: <todo_manager.TodoManager> 1 OPAQUE
-pool: <string> 5
-pool: <int> 5
+pool: todo_manager_instance 1 OPAQUE
+pool: task_name 5
+pool: task_id 5
 
 # Properties
-property: check_task_list_consistency(<todo_manager.TodoManager>)
+property: check_task_list_consistency(todo_manager_instance)
 
 # Initialize TodoManager
-<todo_manager.TodoManager> := todo_manager.TodoManager(filename="test_tasks.json")
+todo_manager_instance := todo_manager.TodoManager(filename="test_tasks.json")
 
 # Generate strings for task names
-<string> := ""
-<string> += <["Task_A", "Task_B", "Task_C", "Task_D", "Task_E"]>
+task_name := ""
+task_name += <["Task_A", "Task_B", "Task_C", "Task_D", "Task_E"]>
 
 # Generate integers for task IDs
-<int> := <[1..100]>
+task_id := <[1..100]>
 
 # Add a task
-~<todo_manager.TodoManager>.add_task(name=<string>, due_date="2024-12-31", priority="Medium", category="Test") => \
-    len(<todo_manager.TodoManager>.tasks) == pre<(len(<todo_manager.TodoManager>.tasks))> + 1
+~todo_manager_instance.add_task(name=task_name, due_date="2024-12-31", priority="Medium", category="Test") => \
+    len(todo_manager_instance.tasks) == pre<(len(todo_manager_instance.tasks))> + 1
 
 # Update a task
-len(<todo_manager.TodoManager>.tasks) > 0 -> \
-~<todo_manager.TodoManager>.update_task(task_id=1, name="Updated Task") => \
-    any(task.name == "Updated Task" for task in <todo_manager.TodoManager>.tasks)
+len(todo_manager_instance.tasks) > 0 -> \
+~todo_manager_instance.update_task(task_id=1, name="Updated Task") => \
+    any(task.name == "Updated Task" for task in todo_manager_instance.tasks)
 
 # Delete a task
-len(<todo_manager.TodoManager>.tasks) > 0 -> \
-~<todo_manager.TodoManager>.delete_task(task_id=1) => \
-    len(<todo_manager.TodoManager>.tasks) == pre<(len(<todo_manager.TodoManager>.tasks))> - 1
+len(todo_manager_instance.tasks) > 0 -> \
+~todo_manager_instance.delete_task(task_id=1) => \
+    len(todo_manager_instance.tasks) == pre<(len(todo_manager_instance.tasks))> - 1
 
 # List tasks
-len(<todo_manager.TodoManager>.tasks) > 0 -> \
-<todo_manager.TodoManager>.list_tasks()
+len(todo_manager_instance.tasks) > 0 -> \
+todo_manager_instance.list_tasks()
 
 # Mark all tasks as completed
-len(<todo_manager.TodoManager>.tasks) > 0 -> \
-~<todo_manager.TodoManager>.mark_all_completed() => \
-    all(task.completed for task in <todo_manager.TodoManager>.tasks)
+len(todo_manager_instance.tasks) > 0 -> \
+~todo_manager_instance.mark_all_completed() => \
+    all_tasks_completed(todo_manager_instance)
 
 # Archive completed tasks
-len(<todo_manager.TodoManager>.tasks) > 0 and \
-any(task.completed for task in <todo_manager.TodoManager>.tasks) -> \
-~<todo_manager.TodoManager>.archive_completed_tasks() => \
-    all(not task.completed for task in <todo_manager.TodoManager>.tasks)
+len(todo_manager_instance.tasks) > 0 and \
+any(task.completed for task in todo_manager_instance.tasks) -> \
+~todo_manager_instance.archive_completed_tasks() => \
+    all(not task.completed for task in todo_manager_instance.tasks)
 
 # Export tasks to CSV
-<todo_manager.TodoManager>.export_tasks_to_csv(filename="test_tasks.csv")
+todo_manager_instance.export_tasks_to_csv(filename="test_tasks.csv")
 
 # Undo last action
-len(<todo_manager.TodoManager>.history) > 0 -> \
-~<todo_manager.TodoManager>.undo_last_action() => \
-    len(<todo_manager.TodoManager>.history) == pre<(len(<todo_manager.TodoManager>.history))> - 1
+len(todo_manager_instance.history) > 0 -> \
+~todo_manager_instance.undo_last_action() => \
+    len(todo_manager_instance.history) == pre<(len(todo_manager_instance.history))> - 1
