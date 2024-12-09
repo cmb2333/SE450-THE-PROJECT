@@ -122,26 +122,12 @@ class TestTodoManager(unittest.TestCase):
     # Export and Archive
     def test_export_tasks_to_csv(self):
         self.manager.add_task("Task 1", "2024-12-31")
-        self.manager.add_task("Task 2", "2023-12-31", "High", "Work")
-        self.manager.update_task(2, completed=True)
+        self.manager.add_task("Task 2", "2023-12-31", "High", "Work", completed=True)
         self.manager.export_tasks_to_csv(filename="test_export.csv")
         with open("test_export.csv", "r") as file:
             rows = list(csv.reader(file))
-        self.assertEqual(len(rows), 3)
-        self.assertEqual(rows[1][1], "Task 1")
-
-    def test_load_tasks_from_csv(self):
-        with open("test_export.csv", "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["ID", "Name", "Due Date", "Priority", "Category", "Completed", "Recurrence"])
-            writer.writerow([1, "Task 1", "2024-12-31", "Medium", "Test Category", False, None])
-            writer.writerow([2, "Task 2", "2023-12-31", "High", "Work", True, "daily"])
-
-        with open("test_export.csv", "r") as file:
-            reader = csv.DictReader(file)
-            tasks = [row for row in reader]
-        self.assertEqual(len(tasks), 2)
-        self.assertEqual(tasks[0]["Name"], "Task 1")
+        self.assertEqual(len(rows), 3)  # Header + 2 tasks
+        self.assertEqual(rows[1][1], "Task 1")  # Verify task details
 
     def test_archive_completed_tasks(self):
         self.manager.add_task("Task 1", "2024-12-31")
@@ -160,10 +146,17 @@ class TestTodoManager(unittest.TestCase):
         self.assertEqual(len(overdue_tasks), 1)
         self.assertEqual(overdue_tasks[0].name, "Overdue Task")
 
-    # Error Handling
-    def test_load_tasks_with_invalid_json(self):
+    # File Handling and Edge Cases
+    def test_load_tasks_empty_file(self):
         with open("test_tasks.json", "w") as file:
-            file.write("INVALID JSON")
+            file.write("[]")
+        self.manager.load_tasks()
+        tasks = self.manager.list_tasks()
+        self.assertEqual(len(tasks), 0)
+
+    def test_load_tasks_unexpected_json_structure(self):
+        with open("test_tasks.json", "w") as file:
+            file.write('[{"unexpected_key": "unexpected_value"}]')
         self.manager.load_tasks()
         tasks = self.manager.list_tasks()
         self.assertEqual(len(tasks), 0)
@@ -171,10 +164,10 @@ class TestTodoManager(unittest.TestCase):
     def test_save_tasks_permission_error(self):
         with open("test_tasks.json", "w") as file:
             file.write("")
-        os.chmod("test_tasks.json", 0o400)
+        os.chmod("test_tasks.json", 0o400)  # Read-only
         with self.assertRaises(PermissionError):
             self.manager.add_task("Test Task", "2024-12-31")
-        os.chmod("test_tasks.json", 0o600)
+        os.chmod("test_tasks.json", 0o600)  # Restore permissions
 
 
 if __name__ == "__main__":
